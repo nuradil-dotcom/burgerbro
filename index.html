@@ -270,30 +270,36 @@
 
         
         <section id="about" 
-            class="relative py-24 md:py-36 min-h-[70vh] flex items-center justify-center overflow-hidden bg-center bg-cover bg-no-repeat"
-            style="background-image: url('img/burger_bro.jpeg'); background-attachment: fixed;">
+            class="relative py-24 md:py-36 min-h-[70vh] flex items-center justify-center overflow-hidden bg-cover bg-no-repeat"
+            style="
+                background-image: url('img/burger_bro.jpeg');
+                background-position: center center;
+                background-attachment: fixed;
+                background-size: cover;
+            ">
             
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
             <div class="relative z-10 text-center px-6 max-w-3xl">
                 <h2 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight 
                         text-transparent bg-clip-text bg-gradient-to-r from-white/65 to-white/50 drop-shadow-lg">
-                    Біздің Тарихымыз және Шеберлігіміз
+                    Біз кімбіз
                 </h2>
 
                 <p class="text-lg md:text-xl text-gray-300 mb-8">
-                    2010 жылы құрылған Culinary Co. - шағын отбасылық кафе болып, үлкен арманымен басталды:
-                    аутентикалық, жоғары сапалы дәмдерді ауданға әкелу. Біз жақсы тағамның жаңа, жергілікті өнімдерден 
-                    және тамақ жасауға деген құштарлықтан басталатынына сенеміз.
+                    2021 жылы Жетісай қаласында негізі қаланған Burger Bro – жаңа және дәмді тағамдар әлеміне қадам. 
+                    Біз бургерлерден бастап, негізгі тағамдар мен салаттарға дейін, әр клиентке сапалы әрі 
+                    шынайы дәмді ұсынуға тырысамыз. Burger Bro – тез, дәмді және көңілді тағамдарды жақсы көретіндердің мекені.
                 </p>
 
                 <a href="#menu" 
-                class="inline-block backdrop-blur-sm bg-white/10 border border-white/30 text-white text-lg font-bold py-3 px-8 rounded-full shadow-xl 
-                        hover:bg-white/30 hover:shadow-2xl transition duration-300 ease-in-out">
-                Мәзірді көру
+                    class="inline-block backdrop-blur-sm bg-white/10 border border-white/30 text-white text-lg font-bold py-3 px-8 rounded-full shadow-xl 
+                            hover:bg-white/30 hover:shadow-2xl transition duration-300 ease-in-out">
+                    Мәзірді көру
                 </a>
             </div>
         </section>
+
 
 
 
@@ -459,16 +465,37 @@
 
     
     <script type="module">
+        
         // Removed all Firebase imports
+        /* ------------------ 🔥 FIREBASE SETUP ------------------ */
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { 
+        getFirestore, collection, addDoc, query, orderBy, serverTimestamp, onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCES7SbAHKrbfiEJCT18gchIf_3xdELQ2w",
+            authDomain: "burgerbro-review.firebaseapp.com",
+            projectId: "burgerbro-review",
+            storageBucket: "burgerbro-review.firebasestorage.app",
+            messagingSenderId: "996552636368",
+            appId: "1:996552636368:web:c9c3041cb77525f006abd5",
+            measurementId: "G-FQTVVGQS49"
+        };
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const reviewsCol = collection(db, "reviews");
+
 
         // --- GLOBAL REFERENCES & LOCAL STORAGE SETUP ---
         // Cart State: Load from local storage, default to empty array
         let cart = JSON.parse(localStorage.getItem('cart') || '[]'); 
         let customizationItem = null; 
         
-        // Review State: Load from local storage, default to empty array
-        let localReviews = JSON.parse(localStorage.getItem('localReviews') || '[]');
-        const hasReviewedKey = 'hasReviewed'; // Local storage key for review status
+        
 
         // UI Refs
         const cartSidebar = document.getElementById('cart-sidebar');
@@ -514,357 +541,401 @@
             { name: '"Альфредо" пастасы', price: 2500, category: "firstsecond", description: "Спагетти, сливки, сыр, специялар", image: "img/firstsecond/alfredo.jpg" },
             { name: "Паста тауық еті", price: 2500, category: "firstsecond", description: "Филе, саңырауқұлақтар, сливки, специялар", image: "img/firstsecond/pasta_chicken_mushrooms.jpg" },
             { name: '"Болоньезе" пастасы', price: 2500, category: "firstsecond", description: "Фарш, сәбіз, пияз, соус, пармезан", image: "img/firstsecond/bolognese.jpg" },
-            { name: "Тауық донері", price: 1200, category: "donerstreetfood", description: "Жаңа піскен көкөністер мен тауық еті бар классикалық донер", image: "ChickenDoner" },
-            { name: "Классикалық донер", price: 1200, category: "donerstreetfood", description: "Дәмі үйлескен көкөніс пен ет қосылған дәстүрлі донер", image: "ClassicDoner" },
-            { name: "Ащы донер", price: 1200, category: "donerstreetfood", description: "Ащы соус қосылған сүйікті донер", image: "SpicyDoner" },
-            { name: "Қос донер", price: 2300, category: "donerstreetfood", description: "Екі етімен жасалған үлкен донер", image: "DoubleDoner" },
-            { name: "Bro донері", price: 2500, category: "donerstreetfood", description: "Үлкен көлемді, тойымды әрі дәмді донер", image: "BroDoner" },
+            { 
+                name: "Тауық донері",
+                options: [
+                    { size: "S", price: 1200 },
+                    { size: "M", price: 1400 }
+                ],
+                category: "donerstreetfood",
+                image: "img/donerstreetfood/doner_chicken.webp"
+            },
+            { 
+                name: "Классикалық донер",
+                options: [
+                    { size: "S", price: 1200 },
+                    { size: "M", price: 1400 }
+                ],
+                category: "donerstreetfood",
+                image: "img/donerstreetfood/doner_classic.webp"
+            },
+            { 
+                name: "Ащы донер",
+                options: [
+                    { size: "S", price: 1200 },
+                    { size: "M", price: 1400 }
+                ],
+                category: "donerstreetfood",
+                image: "img/donerstreetfood/doner_hot.webp"
+            },
+            { 
+                name: "Қос донер",
+                price: 2300,
+                category: "donerstreetfood",
+                description: "Екі етімен жасалған үлкен донер",
+                image: "img/donerstreetfood/doner_double.webp"
+            },
+            { 
+                name: "Bro донері",
+                price: 2500,
+                category: "donerstreetfood",
+                description: "Үлкен көлемді, тойымды әрі дәмді донер",
+                image: "img/donerstreetfood/doner_bro.webp"
+            },
 
-            { name: "Халапеньо соусы", price: 200, category: "donerstreetfood", description: "Ащы әрі балғын халапеньо соусы", image: "JalapenoSauce" },
-            { name: "Ащы соус", price: 200, category: "donerstreetfood", description: "Классикалық ащы соус", image: "SpicySauce" },
-            { name: "Ірімшік соусы", price: 200, category: "donerstreetfood", description: "Кремді ірімшік соусы", image: "CheeseSauce" },
+            { 
+                name: "Халапеньо соусы",
+                price: 200,
+                category: "donerstreetfood",
+                description: "Ащы әрі балғын халапеньо соусы",
+                image: "img/donerstreetfood/jalapeno.jpg"
+            },
+            { 
+                name: "Ащы соус",
+                price: 200,
+                category: "donerstreetfood",
+                description: "Классикалық ащы соус",
+                image: "img/donerstreetfood/sauce_hot.jpg"
+            },
+            { 
+                name: "Ірімшік соусы",
+                price: 200,
+                category: "donerstreetfood",
+                description: "Кремді ірімшік соусы",
+                image: "img/donerstreetfood/sauce_cheese.png"
+            },
 
-            { name: "Фирмалық хот-дог", price: 1100, category: "donerstreetfood", description: "Арнайы рецептпен дайындалған фирмалық хот-дог", image: "SignatureHotdog" },
-            { name: "Қос хот-дог", price: 950, category: "donerstreetfood", description: "Екі сосискамен жасалған дәмді хот-дог", image: "DoubleHotdog" },
-            { name: "Үштік хот-дог", price: 1050, category: "donerstreetfood", description: "Үш сосискамен жасалған супер тойымды хот-дог", image: "TripleHotdog" },
-            { name: "Арнайы тапсырыс хот-дог", price: 950, category: "donerstreetfood", description: "Тұтынушы талғамына сай дайындалған хот-дог", image: "CustomHotdog" },
+            { 
+                name: "Фирмалық хот-дог",
+                price: 1100,
+                category: "donerstreetfood",
+                description: "Арнайы рецептпен дайындалған фирмалық хот-дог",
+                image: "img/donerstreetfood/hotdog.png"
+            },
+            { 
+                name: "Қос хот-дог",
+                price: 950,
+                category: "donerstreetfood",
+                description: "Екі сосискамен жасалған дәмді хот-дог",
+                image: "img/donerstreetfood/hotdog_double.avif"
+            },
+            { 
+                name: "Үштік хот-дог",
+                price: 1050,
+                category: "donerstreetfood",
+                description: "Үш сосискамен жасалған супер тойымды хот-дог",
+                image: "img/donerstreetfood/hotdog.png"
+            },
+            { 
+                name: "Арнайы тапсырыс хот-дог",
+                price: 950,
+                category: "donerstreetfood",
+                description: "Тұтынушы талғамына сай дайындалған хот-дог",
+                image: "img/donerstreetfood/hotdog.png"
+            },
 
-            { name: "Шаурма", price: 900, category: "donerstreetfood", description: "Дәмі үйлескен классикалық шаурма", image: "Shawarma" },
-            { name: "Ірімшікпен шаурма", price: 1100, category: "donerstreetfood", description: "Ерітпе ірімшік қосылған шаурма", image: "CheeseShawarma" },
+            { 
+                name: "Шаурма",
+                options: [
+                    { size: "Ірімшіксіз", price: 900 },
+                    { size: "Ірімшікпен", price: 1100 }
+                ],
+                category: "donerstreetfood",
+                image: "img/donerstreetfood/shawarma.jpeg"
+            },
 
-            { name: "Бутерброд", price: 950, category: "donerstreetfood", description: "Қарапайым әрі дәмді бутерброд", image: "Sandwich" },
-            { name: "Ірімшікпен бутерброд", price: 1200, category: "donerstreetfood", description: "Ерітпе ірімшік қосылған бутерброд", image: "CheeseSandwich" },
-            { name: "Қанаттар баскеты (8 дана)", price: 1900, category: "snacks", description: "Сыртқысы қытырлақ, іші жұмсақ 8 тауық қанаты", image: "Wings8" },
-            { name: "Қанаттар баскеты (16 дана)", price: 3500, category: "snacks", description: "Қытырлақ қабықтағы 16 тауық қанаты – достармен бөлісуге тамаша", image: "Wings16" },
-            { name: "Қанаттар баскеты (25 дана)", price: 4500, category: "snacks", description: "25 тауық қанаты – нағыз үлкен компанияға арналған", image: "Wings25" },
+            
 
-            { name: "Картоп фри", price: 700, category: "snacks", description: "Алтын түсті, қытырлақ картоп фри", image: "Fries" },
-            { name: "Наггетстер", price: 800, category: "snacks", description: "Қуырылған тауық еті бөліктері", image: "Nuggets" },
-            { name: "Картоп долькелері", price: 750, category: "snacks", description: "Қытырлақ әрі жұмсақ картоп долькелері", image: "PotatoWedges" },
-            { name: "Тауық попкорны", price: 800, category: "snacks", description: "Ұсақ әрі қытырлақ тауық попкорны", image: "ChickenPopcorn" },
-            { name: "Пияз сақиналары", price: 700, category: "snacks", description: "Қуырылған пияз сақиналары – нәзік әрі дәмді", image: "OnionRings" },
-            { name: "Картоп шариктері", price: 800, category: "snacks", description: "Іші жұмсақ, сырты алтын түсті картоп шариктері", image: "PotatoBalls" },
-            { name: "Сосискамен фри", price: 1050, category: "snacks", description: "Картоп фри мен қуырылған сосиска үйлесімі", image: "FriesWithSausage" },
-            { name: "Фри ассорти", price: 1050, category: "snacks", description: "Фри, дольке және шариктерден тұратын микс", image: "FriesAssorti" },
-            { name: "Ірімшік таяқшалары", price: 950, category: "snacks", description: "Сыртқысы қытырлақ, іші балқытылған ірімшік", image: "CheeseSticks" },
+            { name: "Бутерброд",                 options: [
+                    { size: "Ірімшіксіз", price: 950 },
+                    { size: "Ірімшікпен", price: 1200 }
+                ], category: "donerstreetfood",  image: "img/donerstreetfood/buterbrod.jpg" },
+            
+            { 
+                name: "Қанаттар баскеты",
+                options: [
+                    { size: "8 дана", price: 1900 },
+                    { size: "16 дана", price: 3500 },
+                    { size: "25 дана", price: 4500 }
+                ],
+                category: "snacks",
+                image: "img/snacks/chicken_basket.webp"
+            },
 
-            { name: "Тауық гамбургеры", price: 1200, category: "burgerpizza", description: "Жаңа піскен көкөністер мен тауық еті қосылған классикалық гамбургер", image: "ChickenBurger" },
-            { name: "Тауық чизбургеры", price: 1350, category: "burgerpizza", description: "Ерітпе ірімшік қосылған тауық гамбургеры", image: "ChickenCheeseburger" },
-            { name: "Қос тауық бургері", price: 1550, category: "burgerpizza", description: "Қос етті тауық бургері – тойымды әрі дәмді", image: "DoubleChickenBurger" },
+            { 
+                name: "Картоп фри",
+                price: 700,
+                category: "snacks",
+                description: "Алтын түсті, қытырлақ картоп фри",
+                image: "img/snacks/french_fries.jpg"
+            },
+            { 
+                name: "Наггетстер",
+                price: 800,
+                category: "snacks",
+                description: "Қуырылған тауық еті бөліктері",
+                image: "img/snacks/nuggets.png"
+            },
+            { 
+                name: "Картоп долькелері",
+                price: 750,
+                category: "snacks",
+                description: "Қытырлақ әрі жұмсақ картоп долькелері",
+                image: "img/snacks/wedges.png"
+            },
+            { 
+                name: "Тауық попкорны",
+                price: 800,
+                category: "snacks",
+                description: "Ұсақ әрі қытырлақ тауық попкорны",
+                image: "img/snacks/chicken_popcorn.webp"
+            },
+            { 
+                name: "Пияз сақиналары",
+                price: 700,
+                category: "snacks",
+                description: "Қуырылған пияз сақиналары – нәзік әрі дәмді",
+                image: "img/snacks/onion_rings.jpg"
+            },
+            { 
+                name: "Картоп шариктері",
+                price: 800,
+                category: "snacks",
+                description: "Іші жұмсақ, сырты алтын түсті картоп шариктері",
+                image: "img/snacks/potato_balls.jpg"
+            },
+            { 
+                name: "Сосискамен фри",
+                price: 1050,
+                category: "snacks",
+                description: "Картоп фри мен қуырылған сосиска үйлесімі",
+                image: "img/snacks/french_fries.jpg"
+            },
+            { 
+                name: "Фри ассорти",
+                price: 1050,
+                category: "snacks",
+                description: "Фри, дольке және шариктерден тұратын микс",
+                image: "img/snacks/fries_assorti.png"
+            },
+            { 
+                name: "Ірімшік таяқшалары",
+                price: 950,
+                category: "snacks",
+                description: "Сыртқысы қытырлақ, іші балқытылған ірімшік",
+                image: "img/snacks/cheese_sticks.webp"
+            },
 
-            { name: "Сиыр гамбургеры", price: 1250, category: "burgerpizza", description: "Шырынды сиыр етінен дайындалған классикалық гамбургер", image: "BeefBurger" },
-            { name: "Сиыр чизбургеры", price: 1350, category: "burgerpizza", description: "Ірімшік пен сиыр еті үйлескен дәмді чизбургер", image: "BeefCheeseburger" },
-            { name: "Қос сиыр бургері", price: 1650, category: "burgerpizza", description: "Қос сиыр етімен дайындалған үлкен бургер", image: "DoubleBeefBurger" },
 
-            { name: "Микс бургер", price: 1550, category: "burgerpizza", description: "Тауық пен сиыр еті аралас бургер", image: "MixBurger" },
-            { name: "Зингер бургер", price: 1300, category: "burgerpizza", description: "Ащы соус пен қытырлақ тауық еті қосылған бургер", image: "ZingerBurger" },
-            { name: "Хашбраун Зингер", price: 1450, category: "burgerpizza", description: "Қытырлақ картоп пен Зингер бургердің тамаша үйлесімі", image: "HashbrownZinger" },
-            { name: "Барбекю бургер", price: 1300, category: "burgerpizza", description: "Барбекю соусымен дәмделген шырынды бургер", image: "BBQBurger" },
-            { name: "Саңырауқұлақпен бургер", price: 1450, category: "burgerpizza", description: "Саңырауқұлақ пен ірімшік қосылған ерекше бургер", image: "MushroomBurger" },
-            { name: "Үйрек етімен бургер", price: 1550, category: "burgerpizza", description: "Индейка етімен дайындалған нәзік әрі дәмді бургер", image: "TurkeyBurger" },
+            { 
+                name: "Гамбургер",
+                options: [
+                    { size: "Тауық еті", price: 1200 },
+                    { size: "Сиыр еті", price: 1250 }
+                ],
+                category: "burgerpizza",
+                image: "img/burgerpizza/hamburger.jpg"
+            },
+            { 
+                name: "Чизбургер",
+                options: [
+                    { size: "Тауық еті", price: 1350 },
+                    { size: "Сиыр еті", price: 1350 }
+                ],
+                category: "burgerpizza",
+                image: "img/burgerpizza/cheeseburger.jpg"
+            },
+            { 
+                name: "Қос бургер(Дабл)",
+                options: [
+                    { size: "Тауық еті", price: 1550 },
+                    { size: "Сиыр еті", price: 1650 }
+                ],
+                category: "burgerpizza",
+                image: "img/burgerpizza/doubleburger.jpg"
+            },
 
-            { name: "Пицца Маргарита", price: 1900, category: "burgerpizza", description: "Ірімшік, томат және базилик қосылған классикалық пицца", image: "MargheritaPizza" },
-            { name: "Пицца Пепперони", price: 2000, category: "burgerpizza", description: "Пепперони мен ірімшік қосылған ащы әрі дәмді пицца", image: "PepperoniPizza" },
-            { name: "Пицца Мексика", price: 2300, category: "burgerpizza", description: "Ащы соус, көкөніс және ет қосылған мексикалық пицца", image: "MexicoPizza" },
-            { name: "Пицца Ранчо", price: 2200, category: "burgerpizza", description: "Ранчо соусымен дайындалған жұмсақ әрі кілегейлі пицца", image: "RanchPizza" },
-            { name: "Тауық пен саңырауқұлақ пиццасы", price: 2400, category: "burgerpizza", description: "Тауық еті мен саңырауқұлақ қосылған сүйікті пицца", image: "ChickenMushroomPizza" },
-            { name: "Bro пиццасы", price: 2400, category: "burgerpizza", description: "Арнайы рецептпен жасалған үлкен әрі дәмді пицца", image: "BroPizza" },
-            { name: "Тәтті пицца", price: 2600, category: "burgerpizza", description: "Жеміс пен шоколад қосылған десерттік пицца", image: "SweetPizza" },
-            { name: "Төрт маусым пиццасы", price: 2300, category: "burgerpizza", description: "Әр маусымның дәмін біріктіретін пицца ассорти", image: "FourSeasonsPizza" },
+            { 
+                name: "Микс бургер",
+                price: 1550,
+                category: "burgerpizza",
+                description: "Тауық пен сиыр еті аралас бургер",
+                image: "img/burgerpizza/mixburger.jpg"
+            },
+            { 
+                name: "Зингер бургер",
+                price: 1300,
+                category: "burgerpizza",
+                description: "Ащы соус пен қытырлақ тауық еті қосылған бургер",
+                image: "img/burgerpizza/zinger.jpg"
+            },
+            { 
+                name: "Хашбраун Зингер",
+                price: 1450,
+                category: "burgerpizza",
+                description: "Қытырлақ картоп пен Зингер бургердің тамаша үйлесімі",
+                image: "img/burgerpizza/zinger.jpg"
+            },
+            { 
+                name: "Барбекю бургер",
+                price: 1300,
+                category: "burgerpizza",
+                description: "Барбекю соусымен дәмделген шырынды бургер",
+                image: "img/burgerpizza/barbecue.jpg"
+            },
+            { 
+                name: "Саңырауқұлақпен бургер",
+                price: 1450,
+                category: "burgerpizza",
+                description: "Саңырауқұлақ пен ірімшік қосылған ерекше бургер",
+                image: "img/burgerpizza/burger_mushroom.webp"
+            },
+            { 
+                name: "Үйрек етімен бургер",
+                price: 1550,
+                category: "burgerpizza",
+                description: "Индейка етімен дайындалған нәзік әрі дәмді бургер",
+                image: "img/burgerpizza/burger_turkey.jpg"
+            },
 
-            { name: "Сгущенка қосылған құймақ", price: 790, category: "desserts", description: "Нәзік құймақ пен тәтті қою сүттің мінсіз үйлесімі", image: "CondensedMilkCrepe" },
-            { name: "Құлпынай қосылған құймақ", price: 790, category: "desserts", description: "Жаңа піскен құлпынай мен балғын құймақ", image: "StrawberryCrepe" },
-            { name: "Таңқурай қосылған құймақ", price: 790, category: "desserts", description: "Қышқыл-тәтті таңқураймен үйлескен нәзік құймақ", image: "RaspberryCrepe" },
-            { name: "Ірімшік қосылған құймақ", price: 1050, category: "desserts", description: "Жұмсақ ірімшік салындысы бар жылы құймақ", image: "CottageCheeseCrepe" },
-            { name: "Банан қосылған құймақ", price: 1050, category: "desserts", description: "Банан мен қою сүт қосылған тәтті құймақ", image: "BananaCrepe" },
-            { name: "Жемістермен құймақ", price: 1050, category: "desserts", description: "Әртүрлі жеміс пен бал қосылған құймақ", image: "FruitCrepe" },
-            { name: "M&Ms қосылған құймақ", price: 1050, category: "desserts", description: "M&Ms кәмпиттерімен безендірілген көңілді құймақ", image: "MMsCrepe" },
-            { name: "Bounty қосылған құймақ", price: 1050, category: "desserts", description: "Кокос пен шоколадтың тәтті үйлесімі", image: "BountyCrepe" },
+            { 
+                name: "Пицца Маргарита",
+                price: 1900,
+                category: "burgerpizza",
+                description: "Ірімшік, томат және базилик қосылған классикалық пицца",
+                image: "img/burgerpizza/pizza_margharita.png"
+            },
+            { 
+                name: "Пицца Пепперони",
+                price: 2000,
+                category: "burgerpizza",
+                description: "Пепперони мен ірімшік қосылған ащы әрі дәмді пицца",
+                image: "img/burgerpizza/pizza_pepperoni.jpg"
+            },
+            { 
+                name: "Пицца Мексика",
+                price: 2300,
+                category: "burgerpizza",
+                description: "Ащы соус, көкөніс және ет қосылған мексикалық пицца",
+                image: "img/burgerpizza/pizza_mexico.jpg"
+            },
+            { 
+                name: "Пицца Ранчо",
+                price: 2200,
+                category: "burgerpizza",
+                description: "Ранчо соусымен дайындалған жұмсақ әрі кілегейлі пицца",
+                image: "img/burgerpizza/pizza_ranch.webp"
+            },
+            { 
+                name: "Тауық пен саңырауқұлақ пиццасы",
+                price: 2400,
+                category: "burgerpizza",
+                description: "Тауық еті мен саңырауқұлақ қосылған сүйікті пицца",
+                image: "img/burgerpizza/pizza_mush_chicken.jpg"
+            },
+            { 
+                name: "Bro пиццасы",
+                price: 2400,
+                category: "burgerpizza",
+                description: "Арнайы рецептпен жасалған үлкен әрі дәмді пицца",
+                image: "img/burgerpizza/pizza_fourseasons.png"
+            },
+            { 
+                name: "Тәтті пицца",
+                price: 2600,
+                category: "burgerpizza",
+                description: "Жеміс пен шоколад қосылған десерттік пицца",
+                image: "img/burgerpizza/pizza_fourseasons.png"
+            },
+            { 
+                name: "Төрт маусым пиццасы",
+                price: 2300,
+                category: "burgerpizza",
+                description: "Әр маусымның дәмін біріктіретін пицца ассорти",
+                image: "img/burgerpizza/pizza_fourseasons.png"
+            },
 
-            { name: "Жапон панкейкі Nutella-мен", price: 1990, category: "desserts", description: "Жұмсақ жапон панкейкі мен Nutella қосылған нәзік десерт", image: "NutellaPancake" },
-            { name: "Тирамису кремі", price: 1990, category: "desserts", description: "Кофе мен кілегейдің тамаша үйлесімі бар итальян десерті", image: "TiramisuCream" },
-            { name: "Фисташкалы крем", price: 1990, category: "desserts", description: "Фисташка дәмі бар бай әрі нәзік крем-десерт", image: "PistachioCream" },
-            { name: "Кілегейлі заварной крем", price: 1990, category: "desserts", description: "Сүт пен кілегейден дайындалған классикалық заварной крем", image: "CustardCream" },
-            { name: "Оливье", price: 1800, category: "salads", description: "Дәстүрлі майонезбен араласқан картоп, ет және көкөніс салаты", image: "OlivierSalad" },
-            { name: "Цезарь", price: 2200, category: "salads", description: "Тауық еті, крутон және пармезан ірімшігі бар әйгілі Цезарь салаты", image: "CaesarSalad" },
-            { name: "Тай салаты", price: 2200, category: "salads", description: "Тауық еті мен көкөністер қосылған азиялық ащы салат", image: "ThaiSalad" },
-            { name: "Баклажан мен бұршақ салаты", price: 2300, category: "salads", description: "Қуырылған баклажан мен жасыл бұршақ қосылған ерекше салат", image: "EggplantPeaSalad" },
-            { name: "Ачучук", price: 1400, category: "salads", description: "Жеңіл әрі сергітетін көкөніс салаты", image: "AchuchuSalad" },
-            { name: "Жаңа салат", price: 1400, category: "salads", description: "Қияр, қызанақ және көкөністерден жасалған классикалық салат", image: "FreshSalad" },
-            { name: "Руккола салаты", price: 2500, category: "salads", description: "Руккола, қызанақ черри және пармезан үйлескен нәзік салат", image: "RucolaSalad" },
-            { name: "Ерлер салаты", price: 2000, category: "salads", description: "Ет пен жұмыртқа қосылған тойымды салат", image: "MensSalad" },
-            { name: "Малибу салаты", price: 2000, category: "salads", description: "Жеңіл әрі тәтті дәмі бар жеміс-жидек салаты", image: "MalibuSalad" },
-            { name: "Грек салаты", price: 2000, category: "salads", description: "Қияр, қызанақ, зәйтүн және фета ірімшігімен дайындалған салат", image: "GreekSalad" },
-            { name: "Жеміс салаты", price: 2300, category: "salads", description: "Маусымдық жемістерден жасалған тәтті әрі сергітетін салат", image: "FruitSalad" },
-            { name: "Комбо сет №1", price: 6900, category: "combo", description: "16 тауық қанаты, Пепперони пицца, картоп фри және 1 л Coca-Cola – достармен тамаша кешке арналған", image: "ComboSet1" },
-            { name: "Комбо сет №2", price: 5700, category: "combo", description: "Пепперони және Мексика пиццасы, наггетстер мен 1 л Coca-Cola – дәмді микс", image: "ComboSet2" },
-            { name: "Комбо сет №3", price: 7600, category: "combo", description: "4 чизбургер, наггетстер, картоп фри және 1 л Coca-Cola – нағыз бургер сүйерлерге арналған", image: "ComboSet3" },
-            { name: "Комбо сет №4", price: 5100, category: "combo", description: "2 Бокс Мастер, наггетстер, картоп фри және 1 л Coca-Cola – толық әрі тойымды кешен", image: "ComboSet4" },
 
-            // === Drinks === //
-        {
-        name: "Авторлық лимонад – Апельсин-Маракуйя",
-        category: "drinks",
-        description: "Балғын апельсин мен маракуйя дәмі бар салқын лимонад",
-        image: "OrangePassionLemonade",
-        options: [
-            { size: "0.5 л", price: 1200 },
-            { size: "1 л", price: 1400 }
-        ]
-        },
-        {
-        name: "Авторлық лимонад – Манго-Маракуйя",
-        category: "drinks",
-        description: "Тәтті манго мен экзотикалық маракуйяның үйлесімі",
-        image: "MangoPassionLemonade",
-        options: [
-            { size: "0.5 л", price: 1200 },
-            { size: "1 л", price: 1400 }
-        ]
-        },
-        {
-        name: "Авторлық лимонад – Киви-Мята",
-        category: "drinks",
-        description: "Киви мен жалбыз дәмі бар сергітетін лимонад",
-        image: "KiwiMintLemonade",
-        options: [
-            { size: "0.5 л", price: 1200 },
-            { size: "1 л", price: 1400 }
-        ]
-        },
-        {
-        name: "Авторлық лимонад – Киви-Алма",
-        category: "drinks",
-        description: "Жемісті және балғын алма мен киви дәмі",
-        image: "KiwiAppleLemonade",
-        options: [
-            { size: "0.5 л", price: 1200 },
-            { size: "1 л", price: 1400 }
-        ]
-        },
+            { name: "Сгущенка қосылған құймақ", price: 790, category: "desserts", description: "Нәзік құймақ пен тәтті қою сүттің мінсіз үйлесімі", image: "img/desserts/with_sgyshenka.jpg" },
+            { name: "Құлпынай қосылған құймақ", price: 790, category: "desserts", description: "Жаңа піскен құлпынай мен балғын құймақ", image: "img/desserts/with_strawberry.jpg" },
+            { name: "Таңқурай қосылған құймақ", price: 790, category: "desserts", description: "Қышқыл-тәтті таңқураймен үйлескен нәзік құймақ", image: "img/desserts/with_malina.webp" },
+            { name: "Ірімшік қосылған құймақ", price: 1050, category: "desserts", description: "Жұмсақ ірімшік салындысы бар жылы құймақ", image: "img/desserts/with_tvorog.jpeg" },
+            { name: "Банан қосылған құймақ", price: 1050, category: "desserts", description: "Банан мен қою сүт қосылған тәтті құймақ", image: "img/desserts/with_banana.webp" },
+            { name: "Жемістермен құймақ", price: 1050, category: "desserts", description: "Әртүрлі жеміс пен бал қосылған құймақ", image: "img/desserts/with_fruits.jpg" },
+            { name: "M&Ms қосылған құймақ", price: 1050, category: "desserts", description: "M&Ms кәмпиттерімен безендірілген көңілді құймақ", image: "img/desserts/with_mnm.jpg" },
+            { name: "Bounty қосылған құймақ", price: 1050, category: "desserts", description: "Кокос пен шоколадтың тәтті үйлесімі", image: "img/desserts/with_bounty.jpg" },
+            { name: "Жапон панкейкі Nutella-мен", price: 1990, category: "desserts", description: "Жұмсақ жапон панкейкі мен Nutella қосылған нәзік десерт", image: "img/desserts/nutella_pancake.jpg" },
+            { name: "Тирамису панкейкі", price: 1990, category: "desserts", description: "Кофе мен кілегей дәмі бар нәзік жапон панкейкі", image: "img/desserts/tiramisu_pancake.jpg" },
+            { name: "Фисташкалы панкейкі", price: 1990, category: "desserts", description: "Фисташка дәмі бар бай әрі нәзік панкейкі", image: "img/desserts/fistachki_pancake.jpg" },
+            { name: "Заварной крем панкейкі", price: 1990, category: "desserts", description: "Кілегей мен заварной крем үйлескен жапон панкейкі", image: "img/desserts/zavarnoi_pancake.jpg" },
 
-        // — Чайлар —
-        {
-        name: "Авторлық шай – Мароккандық",
-        category: "drinks",
-        description: "Жалбыз бен цитрусты дәмдері бар хош иісті шай",
-        image: "MoroccanTea",
-        options: [{ size: "200 мл", price: 800 }]
-        },
-        {
-        name: "Авторлық шай – Лимонды",
-        category: "drinks",
-        description: "Жайлы әрі дәстүрлі лимон қосылған шай",
-        image: "LemonTea",
-        options: [{ size: "200 мл", price: 800 }]
-        },
-        {
-        name: "Қара шай",
-        category: "drinks",
-        description: "Классикалық қара шай, жылы әрі хош иісті",
-        image: "BlackTea",
-        options: [{ size: "200 мл", price: 800 }]
-        },
-        {
-        name: "Жасыл шай",
-        category: "drinks",
-        description: "Табиғи әрі сергітетін жасыл шай",
-        image: "GreenTea",
-        options: [{ size: "200 мл", price: 800 }]
-        },
+            
+            { name: "Оливье", price: 1800, category: "salads", description: "Дәстүрлі майонезбен араласқан картоп, ет және көкөніс салаты", image: "img/salads/olivie.jpeg" },
+            { name: "Цезарь", price: 2200, category: "salads", description: "Тауық еті, крутон және пармезан ірімшігі бар әйгілі Цезарь салаты", image: "img/salads/caesar.webp" },
+            { name: "Тай салаты", price: 2200, category: "salads", description: "Тауық еті мен көкөністер қосылған азиялық ащы салат", image: "img/salads/thai.jpg" },
+            { name: "Баклажан мен бұршақ салаты", price: 2300, category: "salads", description: "Қуырылған баклажан мен жасыл бұршақ қосылған ерекше салат", image: "img/salads/eggplant.jpg" },
+            { name: "Ачучук", price: 1400, category: "salads", description: "Жеңіл әрі сергітетін көкөніс салаты", image: "img/salads/achuchuk.jpg" },
+            { name: "Балғын салат", price: 1400, category: "salads", description: "Қияр, қызанақ және көкөністерден жасалған классикалық салат", image: "img/salads/svejiy.jpg" },
+            { name: "Руккола салаты", price: 2500, category: "salads", description: "Руккола, қызанақ черри және пармезан үйлескен нәзік салат", image: "img/salads/rukkola.webp" },
+            { name: "Мужской каприз", price: 2000, category: "salads", description: "Ет пен жұмыртқа қосылған тойымды салат", image: "img/salads/man_kapriz.jpg" },
+            { name: "Малибу салаты", price: 2000, category: "salads", description: "Жеңіл әрі тәтті дәмі бар жеміс-жидек салаты", image: "img/salads/malibu.jpg" },
+            { name: "Грек салаты", price: 2000, category: "salads", description: "Қияр, қызанақ, зәйтүн және фета ірімшігімен дайындалған салат", image: "img/salads/greek.jpg" },
+            { name: "Жеміс салаты", price: 2300, category: "salads", description: "Маусымдық жемістерден жасалған тәтті әрі сергітетін салат", image: "img/salads/fruit.jpg" },
 
-        // — Салқын сусындар —
-        {
-        name: "Coca-Cola",
-        category: "drinks",
-        description: "Әйгілі газдалған сусын",
-        image: "CocaCola",
-        options: [{ size: "0.5 л", price: 700 }]
-        },
-        {
-        name: "Pepsi",
-        category: "drinks",
-        description: "Классикалық дәм, әр сәтке сергіткіш",
-        image: "Pepsi",
-        options: [{ size: "0.5 л", price: 700 }]
-        },
-        {
-        name: "Fanta",
-        category: "drinks",
-        description: "Жарқын апельсин дәмі бар тәтті сусын",
-        image: "Fanta",
-        options: [{ size: "0.5 л", price: 700 }]
-        },
-        {
-        name: "Fuse Tea",
-        category: "drinks",
-        description: "Жеміс дәмі бар салқын шай",
-        image: "FuseTea",
-        options: [
-            { size: "0.5 л", price: 400 },
-            { size: "1 л", price: 700 }
-        ]
-        },
-        {
-        name: "BonAqua",
-        category: "drinks",
-        description: "Таза ауыз су",
-        image: "BonAqua",
-        options: [
-            { size: "0.5 л", price: 300 },
-            { size: "1 л", price: 400 }
-        ]
-        },
-        {
-        name: "Айран",
-        category: "drinks",
-        description: "Дәстүрлі қышқыл сүт сусыны",
-        image: "Ayran",
-        options: [{ size: "200 мл", price: 250 }]
-        },
-        {
-        name: "Piko балалар шырыны",
-        category: "drinks",
-        description: "Балаларға арналған табиғи жеміс шырыны",
-        image: "PikoJuice",
-        options: [{ size: "200 мл", price: 350 }]
-        },
+            { name: "Комбо сет №1", price: 6900, category: "combo", description: "16 тауық қанаты, Пепперони пицца, картоп фри және 1 л Coca-Cola – достармен тамаша кешке арналған", image: "img/combo/first.png" },
+            { name: "Комбо сет №2", price: 5700, category: "combo", description: "Пепперони және Мексика пиццасы, наггетстер мен 1 л Coca-Cola – дәмді микс", image: "img/combo/second.png" },
+            { name: "Комбо сет №3", price: 7600, category: "combo", description: "4 чизбургер, наггетстер, картоп фри және 1 л Coca-Cola – нағыз бургер сүйерлерге арналған", image: "img/combo/third.png" },
+            { name: "Комбо сет №4", price: 5100, category: "combo", description: "2 Бокс Мастер, наггетстер, картоп фри және 1 л Coca-Cola – толық әрі тойымды кешен", image: "img/combo/fourth.png" },
 
-        // — Молочные —
-        {
-        name: "Oreo сүт коктейлі",
-        category: "drinks",
-        description: "Oreo печеньесі қосылған қою сүт коктейлі",
-        image: "OreoMilkshake",
-        options: [
-            { size: "500 г", price: 1390 },
-            { size: "700 г", price: 1590 }
-        ]
-        },
-        {
-        name: "Манго сүт коктейлі",
-        category: "drinks",
-        description: "Манго дәмі бар балғын сүт коктейлі",
-        image: "MangoMilkshake",
-        options: [
-            { size: "500 г", price: 1390 },
-            { size: "700 г", price: 1590 }
-        ]
-        },
-        {
-        name: "Кокос-Бамбук сүт коктейлі",
-        category: "drinks",
-        description: "Кокос пен бамбук дәмдерінің ерекше үйлесімі",
-        image: "CoconutBambooShake",
-        options: [
-            { size: "500 г", price: 1390 },
-            { size: "700 г", price: 1590 }
-        ]
-        },
+            { name: "Авторлық лимонад – Апельсин-Маракуйя", category: "drinks", image: "img/drinks/orange_maracuja.webp", options: [{ size: "0.5 л", price: 1200 }, { size: "1 л", price: 1400 }] },
+            { name: "Авторлық лимонад – Манго-Маракуйя", category: "drinks", image: "img/drinks/mango_maracuja.jpeg", options: [{ size: "0.5 л", price: 1200 }, { size: "1 л", price: 1400 }] },
+            { name: "Авторлық лимонад – Киви-Мята", category: "drinks", image: "img/drinks/kiwi_mint.png", options: [{ size: "0.5 л", price: 1200 }, { size: "1 л", price: 1400 }] },
+            { name: "Авторлық лимонад – Киви-Яблоко", category: "drinks", image: "img/drinks/kiwi_apple.jpg", options: [{ size: "0.5 л", price: 1200 }, { size: "1 л", price: 1400 }] },
 
-        // — Смузилер —
-        {
-        name: "Банан смузи",
-        category: "drinks",
-        description: "Табиғи бананнан жасалған қою смузи",
-        image: "BananaSmoothie",
-        options: [
-            { size: "500 г", price: 1300 },
-            { size: "700 г", price: 1500 }
-        ]
-        },
-        {
-        name: "Құлпынай смузи",
-        category: "drinks",
-        description: "Балғын құлпынай қосылған тәтті смузи",
-        image: "StrawberrySmoothie",
-        options: [
-            { size: "500 г", price: 1300 },
-            { size: "700 г", price: 1500 }
-        ]
-        },
-        {
-        name: "Кофе смузи",
-        category: "drinks",
-        description: "Кофе мен сүт дәмі бар қуат беретін смузи",
-        image: "CoffeeSmoothie",
-        options: [
-            { size: "500 г", price: 1300 },
-            { size: "700 г", price: 1500 }
-        ]
-        },
-        {
-        name: "Облепиха смузи",
-        category: "drinks",
-        description: "Витаминге бай, сәл қышқылтым теңіз шырғанақ смузи",
-        image: "SeaBuckthornSmoothie",
-        options: [
-            { size: "500 г", price: 1300 },
-            { size: "700 г", price: 1500 }
-        ]
-        },
-        {
-        name: "Сникерс смузи",
-        category: "drinks",
-        description: "Карамель мен шоколад дәмі бар тойымды смузи",
-        image: "SnickersSmoothie",
-        options: [
-            { size: "500 г", price: 1300 },
-            { size: "700 г", price: 1500 }
-        ]
-        },
+            { name: "Чай Марокканский", category: "drinks", image: "img/drinks/moroccan_tea.jpg", price: 800 },
+            { name: "Чай с лимоном", category: "drinks", image: "img/drinks/lemon_tea.avif", price: 800 },
+            { name: "Чай черный", category: "drinks", image: "img/drinks/black_tea.jpg", price: 800 },
+            { name: "Чай зеленый", category: "drinks", image: "img/drinks/green_tea.avif", price: 800 },
 
-        // — Лимонадтар —
-        {
-        name: "Лимонад Blue Curaçao",
-        category: "drinks",
-        description: "Blue Curaçao шәрбаты қосылған ерекше көгілдір лимонад",
-        image: "BlueCuracaoLemonade",
-        options: [
-            { size: "500 г", price: 1200 },
-            { size: "700 г", price: 1400 }
-        ]
-        },
-        {
-        name: "Лимонад Пинаколада",
-        category: "drinks",
-        description: "Кокос пен ананас дәмі бар тропикалық лимонад",
-        image: "PinaColadaLemonade",
-        options: [
-            { size: "500 г", price: 1200 },
-            { size: "700 г", price: 1400 }
-        ]
-        },
-        {
-        name: "Лимонад Киви",
-        category: "drinks",
-        description: "Жаңа піскен киви дәмі бар сергіткіш сусын",
-        image: "KiwiLemonade",
-        options: [
-            { size: "500 г", price: 1200 },
-            { size: "700 г", price: 1400 }
-        ]
-        },
-        {
-        name: "Лимонад Мохито",
-        category: "drinks",
-        description: "Жалбыз және лайм қосылған классикалық мохито",
-        image: "MojitoLemonade",
-        options: [
-            { size: "500 г", price: 1200 },
-            { size: "700 г", price: 1400 }
-        ]
-        },
-        {
-        name: "Лимонад Мохито-Қарбыз",
-        category: "drinks",
-        description: "Қарбыз және жалбыз дәмі бар сергітетін лимонад",
-        image: "WatermelonMojitoLemonade",
-        options: [
-            { size: "500 г", price: 1200 },
-            { size: "700 г", price: 1400 }
-        ]
-        }
+            { name: "Coca-Cola", category: "drinks", image: "img/drinks/coca_cola.webp", price: 700 },
+            { name: "Pepsi", category: "drinks", image: "img/drinks/pepsi.jpg", price: 700 },
+            { name: "Fanta", category: "drinks", image: "img/drinks/fanta.png", price: 700 },
+            { name: "Maxi Tea", category: "drinks", image: "img/drinks/maxi_tea.png", price: 700 },
+            { name: "Fuse Tea", category: "drinks", image: "img/drinks/fusetea.jpg", options: [{ size: "1 л", price: 700 }, { size: "0.5 л", price: 400 }] },
+            { name: "Bon Aqua", category: "drinks", image: "img/drinks/bonaqua.png", options: [{ size: "0.5 л", price: 400 }, { size: "0.3 л", price: 300 }] },
+            { name: "Разливная Coca-Cola", category: "drinks", image: "img/drinks/pouring_cola.png", price: 600 },
+            { name: "Сок Пико детский", category: "drinks", image: "img/drinks/piko_child.jpg", price: 350 },
+            { name: "Айран", category: "drinks", image: "img/drinks/ayran.jpg", price: 250 },
+
+            { name: "Чай ташкентский", category: "drinks", image: "img/drinks/tashkent_tea.avif", price: 800 },
+            { name: "Чай казахский", category: "drinks", image: "img/drinks/kazakh_tea.jpg", price: 800 },
+            { name: "Чай клубничный", category: "drinks", image: "img/drinks/strawberry_tea.avif", options: [{ size: "700 г", price: 1590 }, { size: "500 г", price: 1390 }] },
+            { name: "Чай малиновый", category: "drinks", image: "img/drinks/malina_tea.jpg", options: [{ size: "700 г", price: 1590 }, { size: "500 г", price: 1390 }] },
+            { name: "Чай ягодный", category: "drinks", image: "img/drinks/yagoda_tea.jpg", price: 800 },
+            { name: "Матча с жемчугом", category: "drinks", image: "img/drinks/matcha_jemchug.avif", options: [{ size: "700 г", price: 1590 }, { size: "500 г", price: 1390 }] },
+            { name: "Чай с молочным жемчугом", category: "drinks", image: "img/drinks/milktea_jemchug.avif", options: [{ size: "700 г", price: 1590 }, { size: "500 г", price: 1390 }] },
+            { name: "Чай анчан с клубничными джусболами", category: "drinks", image: "img/drinks/anchan_jusballs.avif", options: [{ size: "700 г", price: 1590 }, { size: "500 г", price: 1390 }] },
+
+            { name: "Молочный Орeо", category: "drinks", image: "img/drinks/milk_oreo.avif", options: [{ size: "700 г", price: 1590 }, { size: "500 г", price: 1390 }] },
+            { name: "Молочный Манго", category: "drinks", image: "img/drinks/milk_mango.avif", options: [{ size: "700 г", price: 1590 }, { size: "500 г", price: 1390 }] },
+            { name: "Сакура с анчаном", category: "drinks", image: "img/drinks/sakura_anchan.webp", options: [{ size: "700 г", price: 1500 }, { size: "500 г", price: 1300 }] },
+            { name: "Батат молочный", category: "drinks", image: "img/drinks/batat_milk.avif", options: [{ size: "700 г", price: 1500 }, { size: "500 г", price: 1300 }] },
+
+            { name: "Банановый смузи", category: "drinks", image: "img/drinks/banana_smoothie.avif", options: [{ size: "700 г", price: 1500 }, { size: "500 г", price: 1300 }] },
+            { name: "Клубничный смузи", category: "drinks", image: "img/drinks/strawberry_smoothie.avif", options: [{ size: "700 г", price: 1500 }, { size: "500 г", price: 1300 }] },
+            { name: "Кофейный смузи", category: "drinks", image: "img/drinks/coffee_smoothie.avif", options: [{ size: "700 г", price: 1500 }, { size: "500 г", price: 1300 }] },
+            { name: "Облепиховый смузи", category: "drinks", image: "img/drinks/oblepixa_smoothie.avif", options: [{ size: "700 г", price: 1500 }, { size: "500 г", price: 1300 }] },
+            { name: "Черничный смузи", category: "drinks", image: "img/drinks/blakish_smoothie.avif", options: [{ size: "700 г", price: 1500 }, { size: "500 г", price: 1300 }] },
+            { name: "Сникерс смузи", category: "drinks", image: "img/drinks/snickers.avif", options: [{ size: "700 г", price: 1500 }, { size: "500 г", price: 1300 }] },
+
+            { name: "Лимонад Бразильский", category: "drinks", image: "img/drinks/brazilian_lemonade.jpg", options: [{ size: "700 г", price: 1400 }, { size: "500 г", price: 1200 }] },
+            { name: "Лимонад Пина Колада", category: "drinks", image: "img/drinks/pina_kolada.jpg", options: [{ size: "700 г", price: 1400 }, { size: "500 г", price: 1200 }] },
+            { name: "Лимонад Киви", category: "drinks", image: "img/drinks/kiwi_lemonade.jpg", options: [{ size: "700 г", price: 1400 }, { size: "500 г", price: 1200 }] },
+            { name: "Лимонад Облепиховый", category: "drinks", image: "img/drinks/oplepixa_lemonade.jpg", options: [{ size: "700 г", price: 1400 }, { size: "500 г", price: 1200 }] },
+            { name: "Лимонад Мохито", category: "drinks", image: "img/drinks/moxito_lemonade.webp", options: [{ size: "700 г", price: 1400 }, { size: "500 г", price: 1200 }] },
+            { name: "Лимонад Мохито Арбузный", category: "drinks", image: "img/drinks/watermelon_moxito_lemonade.jpeg", options: [{ size: "700 г", price: 1400 }, { size: "500 г", price: 1200 }] },
+
+
 
 
 
@@ -878,9 +949,7 @@
             localStorage.setItem('cart', JSON.stringify(itemsToSave));
         }
         
-        function saveReviewsToLocalStorage() {
-            localStorage.setItem('localReviews', JSON.stringify(localReviews));
-        }
+
 
         function loadInitialState() {
             // Display dummy ID or loading text (as the ID element is in the HTML)
@@ -896,57 +965,57 @@
             }
             
             // Initial render of local reviews
-            renderReviews(localReviews);
+            
         }
 
         // Removed initFirebase, getCartDocRef, getReviewsCollectionRef, saveCartToFirestore, loadCartFromFirestore, checkIfReviewed, listenForReviews
 
-        window.handleReviewSubmit = function(event) {
-            event.preventDefault();
-            
-            // Check local storage instead of Firebase/userId
-            if (localStorage.getItem(hasReviewedKey) === 'true') {
-                showMessage("Сіз тек бір пікір жібере аласыз. Рахмет!", 'info');
-                return;
-            }
+        /* ------------------ 💬 FIRESTORE REVIEW SUBMIT ------------------ */
+        const hasReviewedKey = 'hasReviewed';
 
-            const name = document.getElementById('review-name').value.trim();
-            const rating = parseFloat(document.getElementById('review-rating').value);
-            const quote = document.getElementById('review-quote').value.trim();
-            const initials = name.split(' ').map(n => n[0]).join('.').toUpperCase() + '.';
+        window.handleReviewSubmit = async function(event) {
+        event.preventDefault();
 
-            if (!name || !quote) {
-                showMessage("Барлық өрістерді толтырыңыз.", 'error');
-                return;
-            }
-            if (quote.length > REVIEW_MAX_CHARS) {
-                showMessage(`Пікір ${REVIEW_MAX_CHARS} таңбадан аспауы керек.`, 'error');
-                return;
-            }
+        if (localStorage.getItem(hasReviewedKey) === 'true') {
+            showMessage("Сіз тек бір пікір жібере аласыз. Рахмет!", 'info');
+            return;
+        }
 
-            const reviewData = {
-                // userId and serverTimestamp removed
-                name,
-                rating,
-                quote,
-                initials,
-                timestamp: Date.now() // Use JS timestamp for sorting
-            };
-            
-            // Local Review Handling
-            localReviews.unshift(reviewData); 
-            saveReviewsToLocalStorage();
-            localStorage.setItem(hasReviewedKey, 'true'); // Set local flag
+        const name = document.getElementById('review-name').value.trim();
+        const rating = parseFloat(document.getElementById('review-rating').value);
+        const quote = document.getElementById('review-quote').value.trim();
 
-            showMessage("Рахмет! Сіздің пікіріңіз жіберілді.", 'success');
-            document.getElementById('review-form').reset();
-            updateCharCount(); 
-            
-            // UI update
+        if (!name || !quote) {
+            showMessage("Барлық өрістерді толтырыңыз.", 'error');
+            return;
+        }
+
+        if (quote.length > REVIEW_MAX_CHARS) {
+            showMessage(`Пікір ${REVIEW_MAX_CHARS} таңбадан аспауы керек.`, 'error');
+            return;
+        }
+
+        try {
+            await addDoc(reviewsCol, {
+            name,
+            rating,
+            quote,
+            approved: false,
+            timestamp: serverTimestamp()
+            });
+
+            localStorage.setItem(hasReviewedKey, 'true');
             reviewFormEl.classList.add('hidden');
             reviewThankYouEl.classList.remove('hidden');
-            renderReviews(localReviews); 
+            showMessage("Пікір жіберілді! Ол модерациядан кейін жарияланады.", 'success');
+            reviewFormEl.reset();
+            updateCharCount();
+        } catch (err) {
+            console.error(err);
+            showMessage("Қате пайда болды. Кейінірек қайталап көріңіз.", 'error');
         }
+        };
+
 
         // --- UI UTILITY FUNCTIONS ---
 
@@ -1021,7 +1090,7 @@
             const categories = [...new Set(menuData.map(item => item.category))];
 
             const categoryTranslations = {
-                firstsecond: "Негізгі тағамдар",
+                firstsecond: "Негізгі",
                 donerstreetfood: "Донер&Көше тағамдары",
                 snacks: "Тіскебасарлар",
                 burgerpizza: "Бургер&Пицца",
@@ -1070,56 +1139,43 @@
                             ? `https://placehold.co/600x400/333/fff?text=${(item.image || item.name).split(' ').join('+')}`
                             : item.image;
 
-                        // --- Price / Option display ---
-                        // Hide rectangles for drinks, keep for others
-                        let priceBlock = '';
-                        if (item.category !== 'drinks') {
-                            if (item.options && Array.isArray(item.options) && item.options.length > 0) {
-                                const badges = item.options.map(opt => {
-                                    return `<span class="inline-block mr-2 mb-2 px-3 py-1 rounded-full text-sm font-semibold border border-red-600 bg-neutral-800 text-red-400">${opt.size} — ${opt.price}₸</span>`;
-                                }).join('');
-                                priceBlock = `<div class="mb-3">${badges}</div>`;
-                            } else {
-                                const priceVal = typeof item.price === 'number' ? item.price.toFixed(0) : item.price;
-                                priceBlock = `<div class="mb-3"><span class="text-3xl font-extrabold text-red-500">${priceVal}₸</span></div>`;
-                            }
-                        }
+                // --- Price / Option display ---
+                let priceBlock = '';
+                if (!item.options || item.options.length === 0) {
+                    // No options → show regular price
+                    const priceVal = typeof item.price === 'number' ? item.price.toFixed(0) : item.price;
+                    priceBlock = `<div class="mb-3"><span class="text-3xl font-extrabold text-red-500">${priceVal}₸</span></div>`;
+                }
 
-                        // --- Buttons ---
-                        let buttonHtml = '';
-                        const hasOptions = item.options && item.options.length > 0;
+                // --- Buttons ---
+                let buttonHtml = '';
+                const hasOptions = item.options && item.options.length > 0;
 
-                        if (!hasOptions && item.category !== 'drinks') {
-                            buttonHtml = `<button 
-    onclick="openCustomizationModal('${escapeQuotes(item.name)}')" 
-    class="w-full bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition duration-300 shadow-md">
-    Өзгерту және қосу
-</button>
-`;
-                        } 
-                        else if (hasOptions && item.category !== 'drinks') {
-                            buttonHtml = `<button 
-    onclick="openCustomizationModal('${escapeQuotes(item.name)}')" 
-    class="w-full bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition duration-300 shadow-md">
-    Өзгерту және қосу
-</button>
-`;
-                        } 
-                        else if (item.category === 'drinks' && hasOptions) {
-                            // Drinks show red size buttons (centered)
-                            const buttons = item.options.map(opt => `
-                                <button 
-                                    onclick="addDrinkToCart('${escapeQuotes(item.name)}', '${opt.size}', ${opt.price}, '${item.image}')"
-                                    class="w-full bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition duration-300 shadow-md">
-                                    ${opt.size} — ${opt.price}₸
-                                </button>
-                            `).join('');
-                            buttonHtml = `
-                                <div class="mt-auto w-full flex flex-col gap-2 pb-3 px-3">
-                                    ${buttons}
-                                </div>
-                            `;
-                        }
+                if (hasOptions) {
+                    // Any category with options → red option buttons
+                    const buttons = item.options.map(opt => `
+                        <button 
+                            onclick="addDrinkToCart('${escapeQuotes(item.name)}', '${opt.size}', ${opt.price}, '${item.image}')"
+                            class="w-full bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition duration-300 shadow-md">
+                            ${opt.size} — ${opt.price}₸
+                        </button>
+                    `).join('');
+                    buttonHtml = `
+                        <div class="mt-auto w-full flex flex-col gap-2 pb-3 px-3">
+                            ${buttons}
+                        </div>
+                    `;
+                } else {
+                    // No options → show main “Өзгерту және қосу” button
+                    buttonHtml = `
+                        <button 
+                            onclick="openCustomizationModal('${escapeQuotes(item.name)}')" 
+                            class="w-full bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition duration-300 shadow-md">
+                            Өзгерту және қосу
+                        </button>
+                    `;
+                }
+
 
                         const descText = item.description ? item.description : '';
 
@@ -1487,8 +1543,8 @@
                 return;
             }
 
-            const phoneNumber = "+1234567890"; 
-            let message = "Сәлеметсіз бе, Culinary Co! Мен тапсырыс бергім келеді:\n\n";
+            const phoneNumber = "+77786000671"; 
+            let message = "Сәлеметсіз бе, Burger Bro! Мен тапсырыс бергім келеді:\n\n";
             let total = 0;
 
             activeCart.forEach(item => {
@@ -1569,17 +1625,32 @@
                 });
             }
         }
+        /* ------------------ ⚡ REAL-TIME FIRESTORE REVIEWS ------------------ */
+        function startRealtimeReviews() {
+        const q = query(reviewsCol, orderBy("timestamp", "desc"));
+
+        onSnapshot(q, (snapshot) => {
+            const approved = [];
+            snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.approved) approved.push(data);
+            });
+            renderReviews(approved);
+        });
+        }
 
 
         // --- INITIALIZATION ---
         window.onload = function() {
             initializeTheme();
-            loadInitialState(); // Calls local initialization logic
+            loadInitialState(); 
+            startRealtimeReviews(); // 🔥 теперь отзывы обновляются автоматически из Firestore
             renderMenu();
             switchTab(null, 'firstsecond'); 
             updateCart();
             updateCharCount();
         }
+
 
     </script>
 </body>
