@@ -1550,7 +1550,7 @@
             activeCart.forEach(item => {
                 const itemTotal = item.price * item.quantity;
                 let details = item.instructions ? ` (Ескерту: ${item.instructions})` : '';
-                message += `* ${item.name} (x${item.quantity}) - ${itemTotal.toFixed(0)}₸{details}\n`;
+                message += `* ${item.name} (x${item.quantity}) - ${itemTotal.toFixed(0)}₸${details}\n`;
                 total += itemTotal;
             });
 
@@ -1655,3 +1655,4 @@
     </script>
 </body>
 </html>
+
